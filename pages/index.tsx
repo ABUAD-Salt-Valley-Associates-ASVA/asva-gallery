@@ -3,7 +3,7 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Bridge from "../components/Icons/Bridge";
 import Logo from "../components/Icons/Logo";
 import Modal from "../components/Modal";
@@ -11,11 +11,21 @@ import cloudinary from "../utils/cloudinary";
 import getBase64ImageUrl from "../utils/generateBlurPlaceholder";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
+import { motion } from "framer-motion";
+import Card from "../components/Card";
+import { fadeIn, staggerContainer } from "../utils/animationVariants";
+import { eventContext } from "../contexts/eventContext";
 
 const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
   const router = useRouter();
   const { photoId } = router.query;
   const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
+
+  const [folder, setFolder] = useState("epic22");
+
+  const handleCategoryChange = (newCategory) => {
+    setFolder(newCategory);
+  };
 
   const lastViewedPhotoRef = useRef<HTMLAnchorElement>(null);
 
@@ -49,8 +59,17 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
             }}
           />
         )}
-        <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
-          <div className="after:content relative mb-5 flex h-[629px] flex-col items-center justify-end gap-4 overflow-hidden rounded-lg bg-white/10 px-6 pb-16 pt-64 text-center text-white shadow-highlight after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight lg:pt-0">
+        <motion.div
+          variants={staggerContainer}
+          initial={"hidden"}
+          whileInView={"show"}
+          viewport={{ once: false, amount: 0.25 }}
+          className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4"
+        >
+          <motion.div
+            // variants={fadeIn("up", "tween", 0.1, 1)}
+            className="after:content relative mb-5 flex h-[629px] flex-col items-center justify-end gap-4 overflow-hidden rounded-lg bg-white/10 px-6 pb-16 pt-64 text-center text-white shadow-highlight after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight lg:pt-0"
+          >
             <div className="absolute inset-0 flex items-center justify-center opacity-20">
               <span className="flex max-h-full max-w-full items-center justify-center">
                 <Bridge />
@@ -65,42 +84,30 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
               Our incredible ASVA community at EPIC 2022.{" "}
             </p>
 
-            {/* <a
+            <a
               className="pointer z-10 mt-6 rounded-lg border border-white bg-white px-3 py-2 text-sm font-semibold text-black transition hover:bg-white/10 hover:text-white md:mt-4"
               href=""
               target="_blank"
               rel="noreferrer"
+              onClick={() => setFolder("fgm")}
             >
-              NOthing
-            </a> */}
-          </div>
+              Go To Next Event
+            </a>
+          </motion.div>
 
-          {images.map(({ id, public_id, format, blurDataUrl }) => (
-            <Link
-              key={id}
-              href={`/?photoId=${id}`}
-              as={`/p/${id}`}
-              ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
-              shallow
-              className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
-            >
-              <Image
-                alt="ASVA GALLERY photo"
-                className="transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110"
-                style={{ transform: "translate3d(0, 0, 0)" }}
-                placeholder="blur"
-                blurDataURL={blurDataUrl}
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_720/${public_id}.${format}`}
-                width={720}
-                height={480}
-                sizes="(max-width: 640px) 100vw,
-                  (max-width: 1280px) 50vw,
-                  (max-width: 1536px) 33vw,
-                  25vw"
-              />
-            </Link>
+          {images.map(({ id, public_id, format, blurDataUrl }, index) => (
+            <Card
+              key={index}
+              id={id}
+              public_id={public_id}
+              format={format}
+              blurDataUrl={blurDataUrl}
+              lastViewedPhoto={lastViewedPhoto}
+              lastViewedPhotoRef={lastViewedPhotoRef}
+              index={index}
+            />
           ))}
-        </div>
+        </motion.div>
       </main>
       <footer className="p-6 text-center text-white/80 sm:p-12">
         Thank you to{" "}
