@@ -1,7 +1,5 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useRef, useState } from "react";
 import Bridge from "../components/Icons/Bridge";
@@ -13,8 +11,7 @@ import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
 import { motion } from "framer-motion";
 import Card from "../components/Card";
-import { fadeIn, staggerContainer } from "../utils/animationVariants";
-import { eventContext } from "../contexts/eventContext";
+import { staggerContainer } from "../utils/animationVariants";
 
 const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
   const router = useRouter();
@@ -22,10 +19,6 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
   const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
 
   const [folder, setFolder] = useState("epic22");
-
-  const handleCategoryChange = (newCategory) => {
-    setFolder(newCategory);
-  };
 
   const lastViewedPhotoRef = useRef<HTMLAnchorElement>(null);
 
@@ -60,7 +53,15 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
           />
         )}
         <motion.div
-          variants={staggerContainer}
+          variants={{
+            hidden: {},
+            show: {
+              transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.1,
+              },
+            },
+          }}
           initial={"hidden"}
           whileInView={"show"}
           viewport={{ once: false, amount: 0.25 }}
@@ -84,15 +85,15 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
               Our incredible ASVA community at EPIC 2022.{" "}
             </p>
 
-            <a
+            <button
               className="pointer z-10 mt-6 rounded-lg border border-white bg-white px-3 py-2 text-sm font-semibold text-black transition hover:bg-white/10 hover:text-white md:mt-4"
-              href=""
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setFolder("fgm")}
+              onClick={() => {
+                console.log("setFolder", folder);
+                router.push("/", { query: { event: "fgm" } });
+              }}
             >
               Go To Next Event
-            </a>
+            </button>
           </motion.div>
 
           {images.map(({ id, public_id, format, blurDataUrl }, index) => (
@@ -127,9 +128,9 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
 
 export default Home;
 
-export async function getStaticProps() {
+export async function getStaticProps({ event = "epic22" }) {
   const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
+    .expression(`folder:${event}/*`)
     // .expression(`folder:epic22/*`)
     .sort_by("public_id", "desc")
     .max_results(400)
