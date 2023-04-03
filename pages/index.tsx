@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Bridge from "../components/Icons/Bridge";
 import Logo from "../components/Icons/Logo";
 import Modal from "../components/Modal";
@@ -11,7 +11,6 @@ import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
 import { motion } from "framer-motion";
 import Card from "../components/Card";
-import { staggerContainer } from "../utils/animationVariants";
 
 const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
   const router = useRouter();
@@ -128,10 +127,9 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
 
 export default Home;
 
-export async function getStaticProps({ event = "epic22" }) {
+export async function getStaticProps() {
   const results = await cloudinary.v2.search
-    .expression(`folder:${event}/*`)
-    // .expression(`folder:epic22/*`)
+    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
     .sort_by("public_id", "desc")
     .max_results(400)
     .execute();
