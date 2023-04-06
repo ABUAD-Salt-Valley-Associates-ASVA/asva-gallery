@@ -11,8 +11,20 @@ import type { ImageProps } from "../../utils/types";
 import { useLastViewedPhoto } from "../../utils/useLastViewedPhoto";
 import { motion } from "framer-motion";
 import Card from "../../components/Card";
+import slugify from "../../utils/slugify";
 
-const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
+interface Folders {
+  name: string;
+  path: string;
+}
+
+const Home: NextPage = ({
+  images,
+  folders,
+}: {
+  images: ImageProps[];
+  folders: Folders[];
+}) => {
   const router = useRouter();
   const { photoId } = router.query;
 
@@ -27,6 +39,13 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
       setLastViewedPhoto(null);
     }
   }, [photoId, lastViewedPhoto, setLastViewedPhoto]);
+
+  const options = folders.map((folder) => {
+    return {
+      value: slugify(folder.name),
+      label: folder.name,
+    };
+  });
 
   return (
     <>
@@ -77,24 +96,34 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
             </div>
             <Logo />
             <h1 className="mb-4 mt-8 text-base font-bold uppercase tracking-widest">
-              EPIC 2022 Event Photos
+              ABUAD SALT VALLEY ASSOCIATES (ASVA) PHOTO GALLERY
             </h1>
             <p className="max-w-[40ch] text-white/75 sm:max-w-[32ch]">
-              Our incredible ASVA community at EPIC 2022.{" "}
+              Our incredible ASVA community @{" "}
             </p>
 
-            {/* <button
-              className="pointer z-10 mt-6 rounded-lg border border-white bg-white px-3 py-2 text-sm font-semibold text-black transition hover:bg-white/10 hover:text-white md:mt-4"
-              // onClick={() => {
-              //   console.log("setFolder", folder);
-              //   router.push("/", { query: { event: "fgm" } });
-              // }}
+            <select
+              className="pointer z-10 mt-6 rounded-lg border border-white bg-white px-3 py-2 text-sm font-semibold text-black transition  md:mt-4"
+              onChange={(e) => {
+                router.push(`/${e.target.value}`);
+              }}
+              defaultValue={router.query.event}
             >
-              Go To Next Event
-            </button> */}
+              {options.map((option) => {
+                return (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                    // className="hover:bg-white/10 hover:text-white"
+                  >
+                    {option.label}
+                  </option>
+                );
+              })}
+            </select>
           </motion.div>
 
-          {images.map(
+          {images?.map(
             ({ id, public_id, format, blurDataUrl, event }, index) => (
               <Card
                 key={index}
@@ -130,8 +159,18 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
 export default Home;
 
 export async function getStaticProps({ params: { event } }) {
+  const { folders } = await cloudinary.v2.api.root_folders();
+
+  const folder = folders.find((folder) => slugify(folder.name) === event);
+
+  if (!folder) {
+    return {
+      notFound: true,
+    };
+  }
+
   const results = await cloudinary.v2.search
-    .expression(`folder:${event}/*`)
+    .expression(`folder:${folder.name}/*`)
     .sort_by("public_id", "desc")
     .max_results(400)
     .execute();
@@ -163,6 +202,7 @@ export async function getStaticProps({ params: { event } }) {
   return {
     props: {
       images: reducedResults,
+      folders,
     },
   };
 }
@@ -173,7 +213,7 @@ export async function getStaticPaths() {
   const events = results.folders.map((folder) => {
     return {
       params: {
-        event: folder.name,
+        event: slugify(folder.name),
       },
     };
   });
