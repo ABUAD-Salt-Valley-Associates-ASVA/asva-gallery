@@ -40,7 +40,7 @@ const Home: NextPage = ({
     }
   }, [photoId, lastViewedPhoto, setLastViewedPhoto]);
 
-  const options = folders.map((folder) => {
+  const options = folders?.map((folder) => {
     return {
       value: slugify(folder.name),
       label: folder.name,
@@ -109,7 +109,7 @@ const Home: NextPage = ({
               }}
               defaultValue={router.query.event}
             >
-              {options.map((option) => {
+              {options?.map((option) => {
                 return (
                   <option
                     key={option.value}
@@ -190,7 +190,7 @@ export async function getStaticProps({ params: { event } }) {
     i++;
   }
 
-  const blurImagePromises = results.resources.map((image: ImageProps) => {
+  const blurImagePromises = results?.resources?.map((image: ImageProps) => {
     return getBase64ImageUrl(image);
   });
   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
@@ -210,7 +210,7 @@ export async function getStaticProps({ params: { event } }) {
 export async function getStaticPaths() {
   const results = await cloudinary.v2.api.root_folders();
 
-  const events = results.folders.map((folder) => {
+  const events = results?.folders?.map((folder) => {
     return {
       params: {
         event: slugify(folder.name),

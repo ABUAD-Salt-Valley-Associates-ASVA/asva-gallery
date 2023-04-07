@@ -172,7 +172,7 @@ export default function SharedModal({
                 className="mx-auto mb-6 mt-6 flex aspect-[3/2] h-14"
               >
                 <AnimatePresence initial={false}>
-                  {filteredImages.map(({ public_id, format, id }) => (
+                  {filteredImages?.map(({ public_id, format, id }) => (
                     <motion.button
                       initial={{
                         width: "0%",
