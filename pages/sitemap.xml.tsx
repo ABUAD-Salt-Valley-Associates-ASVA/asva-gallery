@@ -21,27 +21,23 @@ async function generateSitemap(): Promise<string> {
 
   const imagePaths = fullImagePaths.map((path) => {
     return {
-      url: `/${path.params.event}/photo/${path.params.photoId}`,
+      url: `https://gallery.asva.tech/${path.params.event}/photo/${path.params.photoId}`,
       lastmod: new Date().toISOString(),
       priority: 0.8,
     };
   });
 
+  // get unique event paths
   const eventPaths = imagePaths
-    .map((imagePath) => {
+    .map((image) => {
       return {
-        url: `/${imagePath.url.split("/")[1]}`,
-        lastmod: imagePath.lastmod,
-        priority: 0.9,
+        url: `https://gallery.asva.tech/${image.url.split("/")[3]}`,
+        lastmod: new Date().toISOString(),
+        priority: 0.8,
       };
     })
-    .filter((imagePath, index, self) => {
-      return (
-        index ===
-        self.findIndex(
-          (t) => t.url === imagePath.url && t.lastmod === imagePath.lastmod
-        )
-      );
+    .filter((image, index, self) => {
+      return self.findIndex((t) => t.url === image.url) === index;
     });
 
   const pages = eventPaths.concat(imagePaths);
