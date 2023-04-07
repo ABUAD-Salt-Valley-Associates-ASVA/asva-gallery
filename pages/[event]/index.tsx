@@ -204,6 +204,7 @@ export async function getStaticProps({ params: { event } }) {
       images: reducedResults,
       folders,
     },
+    revalidate: 10,
   };
 }
 
