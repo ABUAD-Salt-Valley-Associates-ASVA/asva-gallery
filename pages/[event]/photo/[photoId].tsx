@@ -1,11 +1,11 @@
 import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import Carousel from "../../components/Carousel";
-import getResults from "../../utils/cachedImages";
-import cloudinary from "../../utils/cloudinary";
-import getBase64ImageUrl from "../../utils/generateBlurPlaceholder";
-import type { ImageProps } from "../../utils/types";
+import Carousel from "../../../components/Carousel";
+import getResults from "../../../utils/cachedImages";
+import cloudinary from "../../../utils/cloudinary";
+import getBase64ImageUrl from "../../../utils/generateBlurPlaceholder";
+import type { ImageProps } from "../../../utils/types";
 
 const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
   const router = useRouter();
@@ -30,10 +30,13 @@ const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
 
 export default Home;
 
-export const getStaticProps: GetStaticProps = async (context) => {
-  const results = await getResults();
+export const getStaticProps: GetStaticProps = async ({
+  params: { event, photoId },
+}) => {
+  const results = await getResults(event as string);
 
   let reducedResults: ImageProps[] = [];
+
   let i = 0;
   for (let result of results.resources) {
     reducedResults.push({
@@ -46,9 +49,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
     i++;
   }
 
-  const currentPhoto = reducedResults.find(
-    (img) => img.id === Number(context.params.photoId)
-  );
+  const currentPhoto = reducedResults.find((img) => img.id === Number(photoId));
+
   currentPhoto.blurDataUrl = await getBase64ImageUrl(currentPhoto);
 
   return {
@@ -59,15 +61,27 @@ export const getStaticProps: GetStaticProps = async (context) => {
 };
 
 export async function getStaticPaths() {
-  const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-    .sort_by("public_id", "desc")
-    .max_results(400)
-    .execute();
-
+  const results = await cloudinary.v2.api.root_folders();
+  const folders = results.folders;
   let fullPaths = [];
-  for (let i = 0; i < results.resources.length; i++) {
-    fullPaths.push({ params: { photoId: i.toString() } });
+
+  for (let folder of folders) {
+    const photoResults = await cloudinary.v2.search
+      .expression(`folder:${folder.name}/*`)
+      .sort_by("public_id", "desc")
+      .max_results(400)
+      .execute();
+
+    let i = 0;
+    for (let photo of photoResults.resources) {
+      fullPaths.push({
+        params: {
+          event: folder.name,
+          photoId: i.toString(),
+        },
+      });
+      i++;
+    }
   }
 
   return {

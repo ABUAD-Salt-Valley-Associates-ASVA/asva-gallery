@@ -13,6 +13,7 @@ const Card = ({
   lastViewedPhoto,
   lastViewedPhotoRef,
   index,
+  event,
 }) => {
   return (
     <motion.div
@@ -38,8 +39,10 @@ const Card = ({
     >
       <Link
         key={id}
-        href={`/?photoId=${id}`}
-        as={`/p/${id}`}
+        href={{
+          pathname: `/${event}`,
+          query: { photoId: id },
+        }}
         ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
         shallow
         className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
