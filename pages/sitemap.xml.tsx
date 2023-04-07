@@ -33,7 +33,7 @@ async function generateSitemap(): Promise<string> {
       return {
         url: `https://gallery.asva.tech/${image.url.split("/")[3]}`,
         lastmod: new Date().toISOString(),
-        priority: 0.8,
+        priority: 0.9,
       };
     })
     .filter((image, index, self) => {
