@@ -12,6 +12,7 @@ function slugify(text: string): string {
     .replace(/[^\w-]+/g, "")
     .replace(/--+/g, "-")
     .replace(/^-+/, "")
+    .replace(/[^a-z0-9 -]/g, "")
     .replace(/-+$/, "");
 }
 
